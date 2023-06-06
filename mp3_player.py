@@ -1,10 +1,6 @@
 from tkinter import *
-
-#import pygame.mixer.music
-from PIL import ImageTk, Image
 from tkinter import filedialog, ttk
 from pygame import mixer
-import time
 from mutagen.mp3 import MP3
 
 mixer.init()
@@ -17,13 +13,13 @@ playlist = []
 listbox = Listbox(root)
 listbox.grid(row=0, column=0, sticky="NE")
 
-def song_rename(songname):
+def song_rename(song_name):
     s = []
-    lastindex = songname.rindex("/")
-    for i in songname[lastindex+1:]:
+    last_index = song_name.rindex("/")
+    for i in song_name[last_index + 1:]:
         s.append(i)
-    songname = ''.join(s)
-    return songname
+    song_name = ''.join(s)
+    return song_name
 
 def convert_time(time):
     total_seconds = int(time)
@@ -36,22 +32,22 @@ def convert_time(time):
 
 def add_song():
     mixer.music.pause()
-    filename = filedialog.askopenfilename(initialdir="/", title="Select A File", filetypes=(("mp3 files", "*.mp3"), ("all files", "*.*")))
-    if filename != '':
-        songname = song_rename(filename)
-        songinfo = (songname, filename)
-        playlist.append(songinfo)
-        lastindex = len(playlist)-1
-        listbox.insert(END, playlist[lastindex][0])
+    file_name = filedialog.askopenfilename(initialdir="/", title="Select A File", filetypes=(("mp3 files", "*.mp3"), ("all files", "*.*")))
+    if file_name != '':
+        song_name = song_rename(file_name)
+        song_info = (song_name, file_name)
+        playlist.append(song_info)
+        last_index = len(playlist) - 1
+        listbox.insert(END, playlist[last_index][0])
     mixer.music.unpause()
 
 def remove_song():
-    current = listbox.curselection()
-    current = current[0]
-    if current_song == playlist[current][1]:
+    cur_index = listbox.curselection()
+    cur_index = cur_index[0]
+    if current_song == playlist[cur_index][1]:
         stop()
-    listbox.delete(current)
-    playlist.remove((playlist[current][0], playlist[current][1]))
+    listbox.delete(cur_index)
+    playlist.remove((playlist[cur_index][0], playlist[cur_index][1]))
 
 def get_time():
     total_seconds = int(mixer.music.get_pos()/1000)
@@ -63,17 +59,16 @@ def get_time():
         if song_length == int(song_slider.get()):
             song_slider.config(to=song_length, value=song_length)
             elapsed_time.config(text=convert_time(song_length))
-        #elif song_slider.get() != total_seconds:
-            #song_slider.config(to=song_length, value=total_seconds)
-            #elapsed_time.config(text=convert_time(total_seconds))
-            #return
+        elif song_slider.get() == total_seconds:
+            song_slider.config(to=song_length, value=total_seconds)
+            elapsed_time.config(text=convert_time(total_seconds))
         else:
-            song_slider.config(to=song_length,value=int(song_slider.get()))
-            elapsed_time.config(text=convert_time(song_slider.get()))
+            song_slider.config(to=song_length, value=int(song_slider.get()))
+            elapsed_time.config(text=convert_time(int(song_slider.get())))
             next_time = int(song_slider.get()) + 1
             song_slider.config(to=song_length, value=next_time)
     elapsed_time.after(1000, get_time)
-    total_time.config(text=convert_time(song_length))
+    total_time.config(text=convert_time(int(song_length)))
 
 def stop():
     mixer.music.stop()
@@ -86,13 +81,11 @@ def play():
     global current_song
     song_slider.config(value=0)
     elapsed_time.config(text="0:00")
-    current = listbox.curselection()
-    current = current[0]
-    current_song = playlist[current][1]
-
+    cur_index = listbox.curselection()
+    cur_index = cur_index[0]
+    current_song = playlist[cur_index][1]
     mixer.music.load(current_song)
     mixer.music.play()
-
     label.configure(text="Now Playing\n" + listbox.get(listbox.curselection()))
 
     get_time()
@@ -111,7 +104,7 @@ def pause():
 def back():
     song_slider.config(value=0)
     elapsed_time.config(text="0:00")
-    index = listbox.curselection() #changed
+    index = listbox.curselection()
     index = index[0]
     if index == 0:
         listbox.selection_clear(0, END)
@@ -120,7 +113,7 @@ def back():
         mixer.music.play()
         label.configure(text="Now Playing\n" + listbox.get(listbox.size()-1))
     else:
-        prev_song = listbox.curselection() #changed
+        prev_song = listbox.curselection()
         prev_song = prev_song[0] - 1
         mixer.music.load(playlist[prev_song][1])
         mixer.music.play()
@@ -131,7 +124,7 @@ def back():
 def next():
     song_slider.config(value=0)
     elapsed_time.config(text="0:00")
-    index = listbox.curselection() #changed
+    index = listbox.curselection()
     index = index[0]
     if index == listbox.size() - 1:
         listbox.selection_clear(0, END)
@@ -140,7 +133,7 @@ def next():
         mixer.music.play()
         label.configure(text="Now Playing\n" + listbox.get(0))
     else:
-        next_song= listbox.curselection() #changed
+        next_song= listbox.curselection()
         next_song = next_song[0] + 1
         mixer.music.load(playlist[next_song][1])
         mixer.music.play()
@@ -149,10 +142,9 @@ def next():
         label.configure(text="Now Playing\n" + listbox.get(listbox.curselection()))
 
 def scrub(time):
-    current = listbox.curselection()
-    current = current[0]
-
-    mixer.music.load(playlist[current][1])
+    cur_index = listbox.curselection()
+    cur_index = cur_index[0]
+    mixer.music.load(playlist[cur_index][1])
     mixer.music.play(start=song_slider.get())
 
 def volume(vol):
@@ -165,26 +157,26 @@ img3 = PhotoImage(file='images/pause.png')
 img4 = PhotoImage(file='images/play.png')
 img5 = PhotoImage(file='images/volume.png')
 
-btn = Button(root, text="Add Song", command=add_song).grid(row=1,column=0)
+btn = Button(root, text="Add Song", command=add_song).grid(row=1, column=0)
 remove_btn = Button(root, text="Remove Song", command=remove_song).grid(row=2, column=0)
-back_btn = Button(root, image=img1, command=back).grid(row=1,column=2, sticky=E)
-play_btn = Button(root, image=img4, command=play).grid(row=1,column=3, sticky=E)
-pause_btn = Button(root, image=img3, command=pause).grid(row=1,column=4, sticky=E)
-next_btn = Button(root, image=img2, command=next).grid(row=1,column=5, sticky=E)
+back_btn = Button(root, image=img1, command=back).grid(row=1, column=2, sticky=E)
+play_btn = Button(root, image=img4, command=play).grid(row=1, column=3, sticky=E)
+pause_btn = Button(root, image=img3, command=pause).grid(row=1, column=4, sticky=E)
+next_btn = Button(root, image=img2, command=next).grid(row=1, column=5, sticky=E)
 
-blanklabel = Label(root).grid(row=1,column=1)
+blanklabel = Label(root).grid(row=1, column=1)
+
+label = Label(root, text="Now Playing", font=("Courier", 15), wraplength=180)
+label.grid(row=0, column=2, columnspan=5)
 
 volume_frame = LabelFrame(root, bd=0)
 volume_frame.grid(row=0, column=6, columnspan=5)
 
-label = Label(root, text="Now Playing",font=("Courier", 15), wraplength=180)
-label.grid(row=0,column=2, columnspan=5)
-
 elapsed_time = Label(root, text="")
-elapsed_time.grid(row=3,column=2)
+elapsed_time.grid(row=3, column=2)
 
 total_time = Label(root, text="")
-total_time.grid(row=3,column=5)
+total_time.grid(row=3, column=5)
 
 song_slider = ttk.Scale(root, from_=0, to=1, orient=HORIZONTAL, value=0, command=scrub, length=200)
 song_slider.grid(row=2, column=2, columnspan=5)
